@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TYPO-Scanning</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        table th {
+            background-color: #007BFF;
+            color: white;
+            font-weight: bold;
+        }
+        #loading {
+            display: none;
+            font-size: 18px;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <h1>DNS Fuzzing Tool</h1>
+
+    <form id="dnstwistForm">
+        <label for="domain">Enter Domain Name:</label>
+        <input type="text" id="domain" name="domain" required>
+        <button type="submit" id="submitButton">Submit</button>
+    </form>
+
+    <p id="loading">Loading... Please wait.</p>
+
+    <h2>Results:</h2>
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Domain</th>
+                <th>IPv4</th>
+                <th>IPv6</th>
+                <th>Mail Server(MX)</th>
+                <th>Other Info</th>
+            </tr>
+        </thead>
+        <tbody id="resultsBody">
+        </tbody>
+    </table>
+
+    <script>
+        document.getElementById('dnstwistForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const domain = document.getElementById('domain').value;
+            if (!domain) return;
+
+            // Disable submit button and show loading message
+            const submitButton = document.getElementById('submitButton');
+            const loadingIndicator = document.getElementById('loading');
+
+            submitButton.disabled = true;
+            loadingIndicator.style.display = 'block';
+
+            try {
+                const response = await fetch(`/api/dnstwist?domain=${encodeURIComponent(domain)}`);
+                if (!response.ok) {
+                    throw new Error('Error fetching data');
+                }
+
+                const results = await response.json();
+
+                // Append new results to the table without clearing previous ones
+                const resultsBody = document.getElementById('resultsBody');
+                results.forEach(result => {
+                    const row = document.createElement('tr');
+
+                    const domainCell = document.createElement('td');
+                    domainCell.textContent = result.domain || 'N/A';
+                    row.appendChild(domainCell);
+
+                    const aRecordCell = document.createElement('td');
+                    aRecordCell.textContent = result.dns_a || 'N/A';
+                    row.appendChild(aRecordCell);
+
+                    const aaaaRecordCell = document.createElement('td');
+                    aaaaRecordCell.textContent = result.dns_aaaa || 'N/A';
+                    row.appendChild(aaaaRecordCell);
+
+                    const mxRecordCell = document.createElement('td');
+                    mxRecordCell.textContent = result.dns_mx || 'N/A';
+                    row.appendChild(mxRecordCell);
+
+                    const otherInfoCell = document.createElement('td');
+                    otherInfoCell.textContent = result.fuzzer || 'N/A';
+                    row.appendChild(otherInfoCell);
+
+                    resultsBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error:', error.message);
+                alert('Error fetching DNS fuzzing data');
+            } finally {
+                // Re-enable the submit button and hide the loading message
+                submitButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
