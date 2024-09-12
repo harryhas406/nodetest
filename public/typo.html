@@ -4,41 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DNS Typo Fuzzing</title>
+    <script src="https://kit.fontawesome.com/effaf7ea3e.js" crossorigin="anonymous"></script>
     <style>
+        /* Global Styles */
+        body, html {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
         /* Flexbox container for header elements */
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .header-container h1 {
-            text-align: center;
-            flex-grow: 1; /* Ensures the heading takes up the available space */
+            padding: 20px;
+            background-color: #f0f0f0;
         }
 
         .logo {
-            width: 50px; /* Adjust the logo size as needed */
+            width: 75px;
+            height: 75px;
         }
 
+        h1 {
+            text-align: center;
+            flex-grow: 1;
+            color: #1669d3;
+            font-size: 40px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Adjust scanForm layout */
         #scanForm {
             display: flex;
             justify-content: flex-end;
+            margin-top: 60px; ;
+            margin-right: 5px; /* Add some margin to avoid overlap with dark mode toggle */
         }
 
-        input[type="text"], button {
-            padding: 8px;
-            margin-left: 10px; /* Adds spacing between input and button */
+        #scanForm input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
             border-radius: 5px;
             border: 1px solid #ccc;
+            margin-right: 10px;
         }
 
-        button {
-            background-color: #4CAF50;
-            color: white;
+        #scanForm button {
+            padding: 10px 20px;
+            font-size: 16px;
             border: none;
+            background-color: #007bff;
+            color: white;
             cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #scanForm button:hover {
+            background-color: #0056b3;
         }
 
         button:disabled {
@@ -52,16 +80,32 @@
             color: blue;
         }
 
-        /* Table styling */
+        /* Table styling with scrollable body */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px); /* Fill remaining space after header (80px is header height) */
+        }
+
+        .table-container {
+            flex-grow: 1;
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin: 20px auto;
+            width: 90%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            max-height: 600px; /* Adjust the maximum height as needed */
+        }
+
         table {
-            width: 70%; /* Adjust this to control table width */
-            margin: 20px auto; /* Center table horizontally */
+            width: 100%;
             border-collapse: collapse;
         }
 
         th, td {
             padding: 10px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
         }
 
         th {
@@ -71,39 +115,106 @@
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
+        /* Dark Mode Styles */
+        body.dark-mode .header-container {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .header-container h1 {
+            color: #fff;
+        }
+
+        body.dark-mode th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        body.dark-mode {
+            background-color: #333;
+        }
+
+        body.dark-mode table td {
+            background-color: #333;
+            color: #fff;
+        }
+
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            position: absolute; /* Change to fixed to keep it in the same position even when scrolling */
+            top: 10px;       /* Position it 20px from the top of the viewport */
+            right: 10px;     /* Position it 20px from the right of the viewport */
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background-color: #0056b3;
+        }
+        .dark-mode-toggle i {
+            font-size: 20px;
+            margin: 0 5px;
+        }
+
+        .dark-mode-toggle.active .fa-sun {
+            display: none;
+        }
+
+        .dark-mode-toggle.active .fa-moon {
+            display: block;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Dark Mode Toggle Button -->
+    <!-- <button class="dark-mode-toggle" id="darkModeToggle">Toggle Dark Mode</button> -->
+
     <!-- Header container with logo, title, and input form -->
     <div class="header-container">
-        <img src="logo.png" alt="Company Logo" class="logo"> <!-- Add the actual path to your logo -->
-        <h1>DNS Typo Fuzzing Results</h1>
+        <img src="/logo.png" alt="Company Logo" class="logo"> <h1>Comprehensive Phishing Assessment</h1>
         <form id="scanForm">
             <label for="domain"></label>
             <input type="text" id="domain" name="domain" required placeholder="Enter Domain Name">
-            <button type="submit" id="submitButton">Submit</button>
+            <button type="submit" id="submitButton">
+                <i class="fa fa-search"></i> </button>
         </form>
     </div>
+    
+    <button class="dark-mode-toggle" id="darkModeToggle">
+        <i class="fa fa-sun"></i> <i class="fa fa-moon"></i> </button>
 
     <p id="loading">Loading... Please wait.</p>
 
-    <!-- <h2>Results</h2> -->
-    <table border="1" id="resultsTable">
-        <thead>
-            <tr>
-                <th>Domain</th>
-                <th>IPv4</th>
-                <th>IPv6</th>
-                <th>Name Server (NS)</th>
-                <th>Mail Server (MX)</th>
-                <th>Location</th>
-                <th>Created ON</th>
-                <th>Registrar</th>
-            </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-    </table>
+    <!-- Scrollable Table Container that fills remaining page height -->
+    <div class="main-container">
+        <div class="table-container">
+            <table border="1" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>IPv4</th>
+                        <th>IPv6</th>
+                        <th>Name Server (NS)</th>
+                        <th>Mail Server (MX)</th>
+                        <th>Location</th>
+                        <th>Created ON</th>
+                        <th>Registrar</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
         // Function to update the table with results
@@ -111,7 +222,8 @@
             const resultsBody = document.getElementById('resultsBody');
             resultsBody.innerHTML = '';
 
-            results.forEach(result => {
+            // Reverse the results array so that the last search appears on top
+            results.reverse().forEach(result => {
                 const row = document.createElement('tr');
 
                 row.innerHTML = `
@@ -163,6 +275,12 @@
                 submitButton.disabled = false;
                 loadingIndicator.style.display = 'none';
             });
+        });
+
+        // Dark Mode Toggle Functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
         });
     </script>
 
